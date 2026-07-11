@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Serilog;
+using Serilog.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 #region Database connection
@@ -81,20 +83,57 @@ builder.Services.RegisterApplicationServices();
 #endregion
 
 builder.Services.AddControllersWithViews();
-var app = builder.Build();
-await SeedData.SeedRoles(app.Services);
-await SeedData.SeedAdminUser(app.Services, builder.Configuration);
+builder.Host.UseSerilog((context, services, configuration) => configuration
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Warning)
+    .Enrich.FromLogContext()
+    .Enrich.WithProperty("Application", "ECommerceOrderSystem")
+    .WriteTo.Console()
+    .WriteTo.File(
+        "Logs/ecommerce-.log",
+        rollingInterval: RollingInterval.Day,
+        restrictedToMinimumLevel: LogEventLevel.Information,
+        retainedFileCountLimit: 14));
 
-if(!app.Environment.IsDevelopment())
+try
 {
-    app.UseExceptionHandler("/Home/Error"); app.UseHsts();
-}
-app.UseHttpsRedirection();
-app.UseStaticFiles();
-app.UseRouting();
-app.UseAuthentication();
-app.UseAuthorization();
-app.MapControllerRoute(name: "default", pattern: "{controller=Products}/{action=Index}/{id?}");
-app.Run();
+    Log.Information("Starting ECommerceOrderSystem web application.");
+    var app = builder.Build();
+    await SeedData.SeedRoles(app.Services);
+    await SeedData.SeedAdminUser(app.Services, builder.Configuration);
+    Log.Information("Identity roles and admin seed data verified.");
 
+    if(!app.Environment.IsDevelopment())
+    {
+        app.UseExceptionHandler("/Home/Error"); app.UseHsts();
+    }
+    app.UseSerilogRequestLogging(options =>
+    {
+        options.GetLevel = (httpContext, elapsed, exception) =>
+            exception is not null || httpContext.Response.StatusCode >= 500
+                ? LogEventLevel.Error
+                : elapsed >= 1000
+                    ? LogEventLevel.Warning
+                    : LogEventLevel.Debug;
+        options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+    });
+    app.UseHttpsRedirection();
+    app.UseStaticFiles();
+    app.UseRouting();
+    app.UseAuthentication();
+    app.UseAuthorization();
+    app.MapControllerRoute(name: "default", pattern: "{controller=Products}/{action=Index}/{id?}");
+    app.Run();
+}
+catch(Exception exception)
+{
+    Log.Fatal(exception, "ECommerceOrderSystem web application terminated unexpectedly.");
+    throw;
+}
+finally
+{
+    await Log.CloseAndFlushAsync();
+}
 

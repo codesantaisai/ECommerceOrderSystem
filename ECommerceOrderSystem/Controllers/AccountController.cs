@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using ECommerceOrderSystem.Application.Services.Interface;
 using ECommerceOrderSystem.Common;
 using ECommerceOrderSystem.Models.ViewModels.Account;
@@ -7,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerceOrderSystem.Controllers;
 
-public class AccountController(UserManager<ApplicationUser> users, SignInManager<ApplicationUser> signIn, IJwtService jwtService) : Controller
+public class AccountController(UserManager<ApplicationUser> users, SignInManager<ApplicationUser> signIn, IJwtService jwtService, ILogger<AccountController> logger) : Controller
 {
     private const string TokenCookie = "access_token";
 
@@ -22,12 +23,14 @@ public class AccountController(UserManager<ApplicationUser> users, SignInManager
         var user = await users.FindByEmailAsync(model.Email.Trim());
         if(user is null)
         {
+            logger.LogWarning("Failed login attempt for unknown email {Email}.", model.Email.Trim());
             ModelState.AddModelError(string.Empty, "Invalid email or password."); return View(model);
         }
 
         var result = await signIn.CheckPasswordSignInAsync(user, model.Password, lockoutOnFailure: true);
         if(!result.Succeeded)
         {
+            logger.LogWarning("Failed login attempt for user {UserId}. LockedOut: {IsLockedOut}.", user.Id, result.IsLockedOut);
             ModelState.AddModelError(string.Empty, result.IsLockedOut ? "Account temporarily locked." : "Invalid email or password.");
             return View(model);
         }
@@ -35,6 +38,7 @@ public class AccountController(UserManager<ApplicationUser> users, SignInManager
         user.LastLogin = DateTime.UtcNow;
         await users.UpdateAsync(user);
         await SetTokenCookie(user, model.RememberMe);
+        logger.LogInformation("User {UserId} logged in successfully.", user.Id);
         if(!string.IsNullOrWhiteSpace(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
             return LocalRedirect(model.ReturnUrl);
         return await users.IsInRoleAsync(user, "ADMIN") ? RedirectToAction("All", "Orders") : RedirectToAction("Index", "Products");
@@ -57,23 +61,27 @@ public class AccountController(UserManager<ApplicationUser> users, SignInManager
         var result = await users.CreateAsync(user, model.Password);
         if(!result.Succeeded)
         {
+            logger.LogWarning("Registration failed for email {Email}.", model.Email.Trim());
             foreach(var error in result.Errors) ModelState.AddModelError(string.Empty, error.Description);
             return View(model);
         }
         var roleResult = await users.AddToRoleAsync(user, "CUSTOMER");
         if(!roleResult.Succeeded)
         {
+            logger.LogError("Failed to assign CUSTOMER role to new user {UserId}.", user.Id);
             await users.DeleteAsync(user);
             foreach(var error in roleResult.Errors) ModelState.AddModelError(string.Empty, error.Description);
             return View(model);
         }
         await SetTokenCookie(user, false);
+        logger.LogInformation("New customer account {UserId} registered successfully.", user.Id);
         return RedirectToAction("Index", "Products");
     }
 
     [Authorize, HttpPost, ValidateAntiForgeryToken]
     public IActionResult Logout()
     {
+        logger.LogInformation("User {UserId} logged out.", User.FindFirstValue(ClaimTypes.NameIdentifier));
         Response.Cookies.Delete(TokenCookie);
         return RedirectToAction(nameof(Login));
     }

@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ECommerceOrderSystem.Controllers;
 
 [Authorize]
-public class OrderStatusController(IOrderService orders) : Controller
+public class OrderStatusController(IOrderService orders, ILogger<OrderStatusController> logger) : Controller
 {
     [Authorize(Roles = "ADMIN"), HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Update(Guid id, OrderStatus status)
@@ -26,7 +26,9 @@ public class OrderStatusController(IOrderService orders) : Controller
     private async Task<IActionResult> ApplyAsync(Guid id, OrderStatus status, string? customerId = null)
     {
         var result = await orders.UpdateStatusAsync(id, status, customerId);
-        if (result.NotFound) return NotFound();
+        if (result.NotFound) { logger.LogWarning("Order {OrderId} status update to {Status} failed because the order was not found.", id, status); return NotFound(); }
+        if(result.Succeeded) logger.LogInformation("Order {OrderId} status was updated to {Status}.", id, status);
+        else logger.LogWarning("Order {OrderId} status update to {Status} failed: {Message}", id, status, result.Message);
         TempData[result.Succeeded ? "SuccessMessage" : "ErrorMessage"] = result.Message;
         return RedirectToAction("Details", "Orders", new { id });
     }

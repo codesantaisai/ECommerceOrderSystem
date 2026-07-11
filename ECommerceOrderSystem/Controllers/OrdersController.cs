@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ECommerceOrderSystem.Controllers;
 
 [Authorize]
-public class OrdersController(IOrderService orders) : Controller
+public class OrdersController(IOrderService orders, ILogger<OrdersController> logger) : Controller
 {
     [Authorize(Roles = "CUSTOMER"), HttpGet]
     public async Task<IActionResult> Create(Guid? productId = null) => View(await orders.BuildCreateModelAsync(productId));
@@ -17,7 +17,8 @@ public class OrdersController(IOrderService orders) : Controller
     {
         if (!ModelState.IsValid) { await orders.PopulateProductDisplayAsync(model); return View(model); }
         var result = await orders.CreateAsync(model, User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        if (!result.Succeeded) { ModelState.AddModelError(string.Empty, result.Message); await orders.PopulateProductDisplayAsync(model); return View(model); }
+        if (!result.Succeeded) { logger.LogWarning("Order creation failed for user {UserId}: {Message}", User.FindFirstValue(ClaimTypes.NameIdentifier), result.Message); ModelState.AddModelError(string.Empty, result.Message); await orders.PopulateProductDisplayAsync(model); return View(model); }
+        logger.LogInformation("Order {OrderId} was created for user {UserId}.", result.OrderId, User.FindFirstValue(ClaimTypes.NameIdentifier));
         TempData["SuccessMessage"] = result.Message;
         return RedirectToAction(nameof(Details), new { id = result.OrderId });
     }

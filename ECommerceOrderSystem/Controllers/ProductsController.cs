@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerceOrderSystem.Controllers;
 
-public class ProductsController(IProductService products) : Controller
+public class ProductsController(IProductService products, ILogger<ProductsController> logger) : Controller
 {
     [AllowAnonymous, HttpGet]
     public async Task<IActionResult> Index(string search = "")
@@ -29,6 +29,7 @@ public class ProductsController(IProductService products) : Controller
     {
         if(!ModelState.IsValid) return View("Form", model);
         var product = await products.CreateAsync(model);
+        logger.LogInformation("Product {ProductId} ({ProductName}) was created.", product.Id, product.Name);
         TempData["SuccessMessage"] = $"{product.Name} was created successfully.";
         return RedirectToAction(nameof(Index));
     }
@@ -46,7 +47,8 @@ public class ProductsController(IProductService products) : Controller
         if(id != model.Id) return BadRequest();
         if(!ModelState.IsValid) return View(model);
         var result = await products.UpdateAsync(id, model);
-        if(result.Succeeded) { TempData["SuccessMessage"] = result.Message; return RedirectToAction(nameof(Index)); }
+        if(result.Succeeded) { logger.LogInformation("Product {ProductId} was updated.", id); TempData["SuccessMessage"] = result.Message; return RedirectToAction(nameof(Index)); }
+        logger.LogWarning("Product {ProductId} update failed: {Message}", id, result.Message);
         if(result.RowVersion is not null) model.RowVersion = result.RowVersion;
         ModelState.AddModelError(string.Empty, result.Message);
         return View(model);
@@ -66,9 +68,12 @@ public class ProductsController(IProductService products) : Controller
         var result = await products.DeleteAsync(id, model.RowVersion);
         if(result.Succeeded || result.NotFound)
         {
+            if(result.Succeeded) logger.LogInformation("Product {ProductId} was deleted.", id);
+            else logger.LogWarning("Product {ProductId} delete skipped because it was not found.", id);
             TempData[result.Succeeded ? "SuccessMessage" : "ErrorMessage"] = result.Message;
             return RedirectToAction(nameof(Index));
         }
+        logger.LogWarning("Product {ProductId} delete failed: {Message}", id, result.Message);
         ModelState.AddModelError(string.Empty, result.Message);
         var current = await products.GetForDeleteAsync(id);
         return current is null ? RedirectToAction(nameof(Index)) : View("Delete", current);
