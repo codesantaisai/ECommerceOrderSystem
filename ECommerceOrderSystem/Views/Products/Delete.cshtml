@@ -1,0 +1,34 @@
+@model ECommerceOrderSystem.Models.ViewModels.Products.DeleteProductViewModel
+@{
+    ViewData["Title"] = "Delete Product";
+}
+<div class="row justify-content-center py-5">
+    <div class="col-lg-7">
+        <a asp-action="Index" class="text-decoration-none">&larr; Back to products</a><div class="card border-danger shadow-sm mt-3">
+            <div class="card-header bg-danger text-white p-4">
+                <h1 class="h3 mb-1">Delete product</h1>
+                <p class="mb-0 opacity-75">This action cannot be undone.</p>
+            </div>
+            <div class="card-body p-4">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+                <h2 class="h4 fw-bold">@Model.Name</h2>
+                <p class="text-muted">@Model.Description</p>
+                <dl class="row border-top border-bottom py-3">
+                    <dt class="col-6">Price</dt>
+                    <dd class="col-6 text-end">LKR @Model.Price.ToString("N2")</dd>
+                    <dt class="col-6">Current stock</dt>
+                    <dd class="col-6 text-end mb-0">@Model.Stock</dd>
+                </dl>
+                <p>Are you sure you want to permanently delete this product?</p>
+                <form asp-action="Delete" asp-route-id="@Model.Id" method="post">
+                    <input asp-for="Id" type="hidden" />
+                    <input asp-for="RowVersion" type="hidden" />
+                    <div class="d-flex justify-content-end gap-2">
+                        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-danger">Delete Product</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
