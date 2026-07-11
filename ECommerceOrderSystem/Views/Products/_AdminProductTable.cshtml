@@ -26,7 +26,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="fw-semibold">$@item.Price.ToString("N2")</td>
+                        <td class="fw-semibold">@item.Price.ToString("N2") LKR</td>
                         <td>
                             <span class=" @(item.Stock == 0 ? "text-bg-secondary" : item.Stock < 5 ? "text-bg-warning" : "text-bg-success")">@(item.Stock == 0 ? "Out of stock" : $"{item.Stock} units")</span>
                         </td>

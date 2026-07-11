@@ -33,11 +33,42 @@
         }
     </div>
 </div>
-<div class="card border-0 bg-light mb-4"><div class="card-body py-3"><div class="d-flex flex-wrap align-items-center gap-2 small"><strong>Lifecycle:</strong><span class=" @(Model.Status == OrderStatus.Pending ? "text-bg-primary" : "text-bg-secondary")">Pending</span><span>&rarr;</span><span class=" @(Model.Status == OrderStatus.Paid ? "text-bg-primary" : "text-bg-secondary")">Paid</span><span>&rarr;</span><span class=" @(Model.Status == OrderStatus.Shipped ? "text-bg-primary" : "text-bg-secondary")">Shipped</span><span>&rarr;</span><span class=" @(Model.Status == OrderStatus.Delivered ? "text-bg-success" : "text-bg-secondary")">Delivered</span>@if (Model.Status == OrderStatus.Cancelled) {
-<span class=" text-bg-danger ms-2">Cancelled</span>
-}
-</div></div></div>
-<div class="row g-4"><div class="col-lg-8"><div class="card border-0 shadow-sm"><div class="card-header bg-white p-4"><h2 class="h5 fw-bold mb-0">Order items</h2></div><div class="card-body p-4">@foreach (var item in Model.Items) {
-<div class="d-flex justify-content-between border-bottom pb-3 mb-3"><div><strong>@item.ProductName</strong><div class="text-muted small">$@item.UnitPrice.ToString("N2") &times; @item.Quantity</div></div><strong>$@item.LineTotal.ToString("N2")</strong></div>
-}
-<div class="d-flex justify-content-between pt-2"><span class="h5">Grand total</span><strong class="h4">$@Model.GrandTotal.ToString("N2")</strong></div></div></div></div><div class="col-lg-4"><div class="card border-0 shadow-sm mb-3"><div class="card-body p-4"><h2 class="h5 fw-bold">Customer</h2><strong>@Model.CustomerName</strong><div class="text-muted">@Model.CustomerEmail</div></div></div><div class="card border-0 shadow-sm"><div class="card-body p-4"><h2 class="h5 fw-bold">Shipping address</h2><p class="mb-0" style="white-space:pre-line">@Model.ShippingAddress</p></div></div></div></div>
+<div class="card border-0 bg-light mb-4">
+    <div class="card-body py-3">
+        <div class="d-flex flex-wrap align-items-center gap-2 small">
+            <strong>Lifecycle:</strong>
+            <span class="badge @(Model.Status == OrderStatus.Pending ? "text-primary" : "text-secondary")">Pending</span>
+            <span>&rarr;</span>
+            <span class="badge @(Model.Status == OrderStatus.Paid ? "text-primary" : "text-secondary")">Paid</span>
+            <span>&rarr;</span><span class="badge @(Model.Status == OrderStatus.Shipped ? "text-primary" : "text-secondary")">Shipped</span>
+            <span>&rarr;</span>
+            <span class="badge @(Model.Status == OrderStatus.Delivered ? "text-success" : "text-secondary")">Delivered</span>
+            @if(Model.Status == OrderStatus.Cancelled)
+            {
+                <span class=" text-bg-danger ms-2">Cancelled</span>
+            }
+        </div>
+    </div>
+</div>
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white p-4">
+                <h2 class="h5 fw-bold mb-0">Order items</h2>
+            </div>
+            <div class="card-body p-4">
+                @foreach(var item in Model.Items)
+                {
+                    <div class="d-flex justify-content-between border-bottom pb-3 mb-3">
+                        <div>
+                            <strong>@item.ProductName</strong>
+                            <div class="text-muted small">@item.UnitPrice.ToString("N2") LKR &times; @item.Quantity</div>
+                        </div>
+                        <strong>@item.LineTotal.ToString("N2") LKR</strong>
+                    </div>
+                }
+                <div class="d-flex justify-content-between pt-2"><span class="h5">Grand total</span><strong class="h4">@Model.GrandTotal.ToString("N2") LKR</strong></div>
+            </div>
+        </div>
+    </div><div class="col-lg-4"><div class="card border-0 shadow-sm mb-3"><div class="card-body p-4"><h2 class="h5 fw-bold">Customer</h2><strong>@Model.CustomerName</strong><div class="text-muted">@Model.CustomerEmail</div></div></div><div class="card border-0 shadow-sm"><div class="card-body p-4"><h2 class="h5 fw-bold">Shipping address</h2><p class="mb-0" style="white-space:pre-line">@Model.ShippingAddress</p></div></div></div>
+</div>

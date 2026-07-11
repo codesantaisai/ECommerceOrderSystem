@@ -27,7 +27,7 @@ else
                 <tbody>
                     @foreach(var order in Model)
                     {
-                        <tr><td class="p-3 fw-bold">@order.OrderNumber</td><td>@order.CreatedDate.ToLocalTime().ToString("dd MMM yyyy")</td><td>@order.ItemCount</td><td class="fw-semibold">$@order.GrandTotal.ToString("N2")</td><td><span class=" text-bg-primary">@order.Status</span></td><td class="text-end pe-3"><a asp-action="Details" asp-route-id="@order.Id" class="btn btn-sm btn-outline-dark">View</a></td></tr>
+                        <tr><td class="p-3 fw-bold">@order.OrderNumber</td><td>@order.CreatedDate.ToLocalTime().ToString("dd MMM yyyy")</td><td>@order.ItemCount</td><td class="fw-semibold">@order.GrandTotal.ToString("N2") LKR</td><td><span class=" text-bg-primary">@order.Status</span></td><td class="text-end pe-3"><a asp-action="Details" asp-route-id="@order.Id" class="btn btn-sm btn-outline-dark">View</a></td></tr>
                     }
                 </tbody>
             </table>

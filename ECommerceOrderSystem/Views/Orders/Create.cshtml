@@ -1,7 +1,64 @@
 @model ECommerceOrderSystem.Models.ViewModels.Orders.CreateOrderViewModel
-@{ ViewData["Title"] = "Create Order"; }
-<div class="mb-4"><span class="text-primary fw-semibold small">NEW ORDER</span><h1 class="display-6 fw-bold">Create order</h1><p class="text-muted">Select products and review your order before placing it.</p></div>
-<form asp-action="Create" method="post"><div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div><div class="row g-4"><div class="col-lg-8"><div class="card border-0 shadow-sm"><div class="card-header bg-white p-4"><h2 class="h5 fw-bold mb-1">Available products</h2><p class="text-muted small mb-0">Choose quantities for the products you need.</p></div><div class="list-group list-group-flush">
-@for (var index = 0; index < Model.Items.Count; index++) { <div class="list-group-item p-4 d-flex justify-content-between align-items-center order-line" data-price="@Model.Items[index].UnitPrice"><input asp-for="Items[index].ProductId" type="hidden" /><input asp-for="Items[index].ProductName" type="hidden" /><input asp-for="Items[index].UnitPrice" type="hidden" /><input asp-for="Items[index].AvailableStock" type="hidden" /><div><strong>@Model.Items[index].ProductName</strong><div class="text-muted small">$@Model.Items[index].UnitPrice.ToString("N2") &middot; @Model.Items[index].AvailableStock available</div></div><div class="input-group" style="width:140px"><button type="button" class="btn btn-outline-secondary quantity-step" data-step="-1">-</button><input asp-for="Items[index].Quantity" class="form-control text-center quantity-input" min="0" max="@Model.Items[index].AvailableStock" /><button type="button" class="btn btn-outline-secondary quantity-step" data-step="1">+</button></div></div> }
-</div></div></div><div class="col-lg-4"><div class="card border-0 shadow-sm sticky-top" style="top:1rem"><div class="card-body p-4"><h2 class="h5 fw-bold">Order summary</h2><div class="d-flex justify-content-between py-3 border-bottom"><span class="text-muted">Items</span><strong id="summaryQuantity">0</strong></div><div class="d-flex justify-content-between py-3"><span class="h5">Total</span><strong class="h4" id="summaryTotal">$0.00</strong></div><label asp-for="ShippingAddress" class="form-label fw-semibold"></label><textarea asp-for="ShippingAddress" class="form-control" rows="4" placeholder="Street, city and postal code"></textarea><span asp-validation-for="ShippingAddress" class="text-danger small"></span><button type="submit" class="btn btn-primary btn-lg w-100 mt-4">Place Order</button></div></div></div></div></form>
-@section Scripts { <partial name="_ValidationScriptsPartial" /><script>(()=>{const update=()=>{let quantity=0,total=0;document.querySelectorAll('.order-line').forEach(line=>{const input=line.querySelector('.quantity-input');const value=Math.max(0,Number(input.value)||0);quantity+=value;total+=value*Number(line.dataset.price)});document.getElementById('summaryQuantity').textContent=quantity;document.getElementById('summaryTotal').textContent='$'+total.toFixed(2)};document.querySelectorAll('.quantity-step').forEach(button=>button.addEventListener('click',()=>{const input=button.parentElement.querySelector('.quantity-input');input.value=Math.max(0,Math.min(Number(input.max),Number(input.value||0)+Number(button.dataset.step)));update()}));document.querySelectorAll('.quantity-input').forEach(input=>input.addEventListener('input',update));update()})();</script> }
+@{
+    ViewData["Title"] = "Create Order";
+}
+<div class="mb-4">
+    <span class="text-primary fw-semibold small">NEW ORDER</span>
+    <h1 class="display-6 fw-bold">Create order</h1>
+    <p class="text-muted">Select products and review your order before placing it.</p>
+</div>
+<form asp-action="Create" method="post">
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white p-4">
+                    <h2 class="h5 fw-bold mb-1">Available products</h2>
+                    <p class="text-muted small mb-0">Choose quantities for the products you need.</p>
+                </div>
+                <div class="list-group list-group-flush">
+                    @for(var index = 0; index < Model.Items.Count; index++)
+                    {
+                        <div class="list-group-item p-4 d-flex justify-content-between align-items-center order-line" data-price="@Model.Items[index].UnitPrice">
+                            <input asp-for="Items[index].ProductId" type="hidden" />
+                            <input asp-for="Items[index].ProductName" type="hidden" />
+                            <input asp-for="Items[index].UnitPrice" type="hidden" />
+                            <input asp-for="Items[index].AvailableStock" type="hidden" />
+                            <div>
+                                <strong>@Model.Items[index].ProductName</strong>
+                                <div class="text-muted small">@Model.Items[index].UnitPrice.ToString("N2") LKR &middot; @Model.Items[index].AvailableStock available</div>
+                            </div><div class="input-group" style="width:140px">
+                                <button type="button" class="btn btn-outline-secondary quantity-step" data-step="-1">-</button>
+                                <input asp-for="Items[index].Quantity" class="form-control text-center quantity-input" min="0" max="@Model.Items[index].AvailableStock" />
+                                <button type="button" class="btn btn-outline-secondary quantity-step" data-step="1">+</button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm sticky-top" style="top:1rem">
+                <div class="card-body p-4">
+                    <h2 class="h5 fw-bold">Order summary</h2>
+                    <div class="d-flex justify-content-between py-3 border-bottom">
+                        <span class="text-muted">Items</span>
+                        <strong id="summaryQuantity">0</strong>
+                    </div>
+                    <div class="d-flex justify-content-between py-3">
+                        <span class="h5">Total</span>
+                        <strong class="h4" id="summaryTotal">0.00 LKR</strong>
+                    </div>
+                    <label asp-for="ShippingAddress" class="form-label fw-semibold"></label>
+                    <textarea asp-for="ShippingAddress" class="form-control" rows="4" placeholder="Street, city and postal code"></textarea>
+                    <span asp-validation-for="ShippingAddress" class="text-danger small"></span>
+                    <button type="submit" class="btn btn-primary btn-lg w-100 mt-4">Place Order</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>(()=>{const update=()=>{let quantity=0,total=0;document.querySelectorAll('.order-line').forEach(line=>{const input=line.querySelector('.quantity-input');const value=Math.max(0,Number(input.value)||0);quantity+=value;total+=value*Number(line.dataset.price)});document.getElementById('summaryQuantity').textContent=quantity;document.getElementById('summaryTotal').textContent='$'+total.toFixed(2)};document.querySelectorAll('.quantity-step').forEach(button=>button.addEventListener('click',()=>{const input=button.parentElement.querySelector('.quantity-input');input.value=Math.max(0,Math.min(Number(input.max),Number(input.value||0)+Number(button.dataset.step)));update()}));document.querySelectorAll('.quantity-input').forEach(input=>input.addEventListener('input',update));update()})();</script>
+}
