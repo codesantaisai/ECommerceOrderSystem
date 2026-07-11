@@ -1,0 +1,23 @@
+@model IReadOnlyList<Product>
+<div class="row g-4">
+    @foreach(var item in Model)
+    {
+        <div class="col-md-6 col-xl-3">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="bg-primary bg-opacity-10 d-flex align-items-center justify-content-center" style="height:180px">
+                    <span class="display-2 fw-bold text-primary">@item.Name[0]</span>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between gap-2">
+                        <h2 class="h5 fw-bold">@item.Name</h2>
+                        <strong class="text-nowrap">$@item.Price.ToString("N2")</strong>
+                    </div>
+                    <p class="text-muted small">@item.Description</p>
+                    <span class="badge @(item.Stock == 0 ? "text-bg-secondary" : "text-bg-success")">
+                        @(item.Stock == 0 ? "Out of stock" : $"{item.Stock} in stock")
+                    </span>
+                </div>
+            </div>
+        </div>
+    }
+</div>

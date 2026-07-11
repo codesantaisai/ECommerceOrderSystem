@@ -1,9 +1,9 @@
 @model IReadOnlyList<Product>
 @{
-    ViewData["Title"] = "Products";
+    ViewData["Title"] = User.IsInRole("ADMIN") ? "Manage Products" : "Products";
 }
 <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
-    <div><span class="text-primary fw-semibold small">PRODUCT CATALOG</span><h1 class="display-6 fw-bold mb-1">Products</h1><p class="text-muted mb-0">Browse the latest products available in our store.</p></div>@if (User.IsInRole("ADMIN")) {
+    <div><span class="text-primary fw-semibold small">@(User.IsInRole("ADMIN") ? "ADMIN · INVENTORY" : "PRODUCT CATALOG")</span><h1 class="display-6 fw-bold mb-1">@(User.IsInRole("ADMIN") ? "Manage products" : "Products")</h1><p class="text-muted mb-0">@(User.IsInRole("ADMIN") ? "Review and maintain the store inventory." : "Browse the latest products available in our store.")</p></div>@if (User.IsInRole("ADMIN")) {
     <a asp-action="Create" class="btn btn-primary">+ Add Product</a>
         }
 </div>
@@ -26,36 +26,11 @@
     </div>
 </div>
 }
+else if(User.IsInRole("ADMIN"))
+{
+    <partial name="_AdminProductTable" model="Model" />
+}
 else
 {
-
-    <div class="row g-4">
-        @foreach(var item in Model)
-        {
-            <div class="col-md-6 col-xl-3">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="bg-primary bg-opacity-10 d-flex align-items-center justify-content-center" style="height:180px">
-                        <span class="display-2 fw-bold text-primary">@item.Name[0]</span>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between gap-2">
-                            <h2 class="h5 fw-bold">@item.Name</h2>
-                            <strong class="text-nowrap">LKR @item.Price.ToString("N2")</strong>
-                        </div>
-                        <p class="text-muted small">@item.Description</p>
-                        <div class="d-flex justify-content-between align-items-center gap-2">
-                            <span class="badge @(item.Stock == 0 ? "text-bg-secondary" : "text-bg-success")">@(item.Stock == 0 ? "Out of stock" : $"{item.Stock} in stock")</span>
-                            @if(User.IsInRole("ADMIN"))
-                            {
-                                <div class="btn-group btn-group-sm">
-                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-dark">Edit</a>
-                                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger">Delete</a>
-                                </div>
-                            }
-                        </div>
-                    </div>
-                </div>
-            </div>
-        }
-    </div>
+    <partial name="_CustomerProductCards" model="Model" />
 }

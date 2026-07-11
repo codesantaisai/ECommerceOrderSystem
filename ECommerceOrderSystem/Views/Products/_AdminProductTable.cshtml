@@ -1,0 +1,45 @@
+@model IReadOnlyList<Product>
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th class="px-4 py-3">Product</th>
+                    <th class="py-3">Price</th>
+                    <th class="py-3">Stock</th>
+                    <th class="py-3">Created</th>
+                    <th class="px-4 py-3 text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach(var item in Model)
+                {
+                    <tr>
+                        <td class="px-4 py-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="bg-primary bg-opacity-10 text-primary rounded d-flex align-items-center justify-content-center fw-bold" style="width:44px;height:44px">
+                                    @item.Name[0]
+                                </div>
+                                <div>
+                                    <div class="fw-semibold">@item.Name</div>
+                                    <div class="text-muted small text-truncate" style="max-width:420px">@item.Description</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="fw-semibold">$@item.Price.ToString("N2")</td>
+                        <td>
+                            <span class=" @(item.Stock == 0 ? "text-bg-secondary" : item.Stock < 5 ? "text-bg-warning" : "text-bg-success")">@(item.Stock == 0 ? "Out of stock" : $"{item.Stock} units")</span>
+                        </td>
+                        <td class="text-muted">@item.CreatedDate.ToLocalTime().ToString("dd MMM yyyy")</td>
+                        <td class="px-4 text-end">
+                            <div class="btn-group btn-group-sm">
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-primary">Edit</a>
+                                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger">Delete</a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
