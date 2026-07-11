@@ -1,1 +1,23 @@
-<Project Sdk="Microsoft.NET.Sdk.Web"><PropertyGroup><TargetFramework>net8.0</TargetFramework><Nullable>disable</Nullable><ImplicitUsings>enable</ImplicitUsings></PropertyGroup><ItemGroup><PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.28" /><PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.28" /><PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.28" /><PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.28"><PrivateAssets>all</PrivateAssets><IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets></PackageReference><PackageReference Include="Serilog" Version="4.4.0" /></ItemGroup></Project>
+<Project Sdk="Microsoft.NET.Sdk.Web">
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<Nullable>disable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.28" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.28" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.28" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.28">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Serilog" Version="4.4.0" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\ECommerceOrderSystem.Application\ECommerceOrderSystem.Application.csproj" />
+		<ProjectReference Include="..\ECommerceOrderSystem.Domain\ECommerceOrderSystem.Domain.csproj" />
+		<ProjectReference Include="..\ECommerceOrderSystem.Infrastructure\ECommerceOrderSystem.Infrastructure.csproj" />
+	</ItemGroup>
+</Project>
+

@@ -1,17 +1,20 @@
 using System.Security.Claims;
 using System.Text;
+using ECommerceOrderSystem.Application;
 using ECommerceOrderSystem.Common;
 using ECommerceOrderSystem.Data;
-using ECommerceOrderSystem.SeedData;
-using ECommerceOrderSystem.Services;
+using ECommerceOrderSystem.Infrastructure.SeedData;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
+#region Database connection
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+#endregion
 
+#region Identity
 builder.Services.AddIdentityCore<ApplicationUser>(options =>
 {
     options.User.RequireUniqueEmail = true;
@@ -26,7 +29,10 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddSignInManager();
 
+#endregion
 var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT key is missing.");
+
+#region JWT Bearer
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -68,13 +74,27 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+#endregion 
 builder.Services.AddAuthorization();
-builder.Services.AddScoped<IJwtService, JwtService>();
+#region Services Registration
+builder.Services.RegisterApplicationServices();
+#endregion
+
 builder.Services.AddControllersWithViews();
 var app = builder.Build();
 await SeedData.SeedRoles(app.Services);
 await SeedData.SeedAdminUser(app.Services, builder.Configuration);
-if(!app.Environment.IsDevelopment()) { app.UseExceptionHandler("/Home/Error"); app.UseHsts(); }
-app.UseHttpsRedirection(); app.UseStaticFiles(); app.UseRouting(); app.UseAuthentication(); app.UseAuthorization();
+
+if(!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Home/Error"); app.UseHsts();
+}
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+app.UseRouting();
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapControllerRoute(name: "default", pattern: "{controller=Products}/{action=Index}/{id?}");
 app.Run();
+
+

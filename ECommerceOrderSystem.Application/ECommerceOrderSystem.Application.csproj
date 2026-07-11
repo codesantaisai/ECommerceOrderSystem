@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<Nullable>disable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+	</PropertyGroup>
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.28" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.28" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\ECommerceOrderSystem.Domain\ECommerceOrderSystem.Domain.csproj" />
+		<ProjectReference Include="..\ECommerceOrderSystem.Infrastructure\ECommerceOrderSystem.Infrastructure.csproj" />
+	</ItemGroup>
+</Project>
+
