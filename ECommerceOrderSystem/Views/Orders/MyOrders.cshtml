@@ -1,0 +1,6 @@
+@{ ViewData["Title"] = "My Orders"; }
+<div class="d-flex justify-content-between align-items-end mb-4"><div><span class="text-primary fw-semibold small">ORDER HISTORY</span><h1 class="display-6 fw-bold">My orders</h1><p class="text-muted mb-0">Track current purchases and review previous orders.</p></div><a asp-action="Create" class="btn btn-primary">Create Order</a></div>
+<div class="card border-0 shadow-sm"><div class="table-responsive"><table class="table align-middle mb-0"><thead class="table-light"><tr><th class="p-3">Order</th><th>Date</th><th>Items</th><th>Total</th><th>Status</th><th></th></tr></thead><tbody>
+<tr><td class="p-3 fw-bold">ORD-1048</td><td>10 Jul 2026</td><td>2</td><td class="fw-semibold">$378.50</td><td><span class="badge text-bg-primary">Paid</span></td><td class="text-end pe-3"><a asp-action="Details" asp-route-id="1" class="btn btn-sm btn-outline-dark">View</a></td></tr>
+<tr><td class="p-3 fw-bold">ORD-1042</td><td>06 Jul 2026</td><td>3</td><td class="fw-semibold">$598.49</td><td><span class="badge text-bg-success">Delivered</span></td><td class="text-end pe-3"><a asp-action="Details" asp-route-id="2" class="btn btn-sm btn-outline-dark">View</a></td></tr>
+</tbody></table></div></div>
