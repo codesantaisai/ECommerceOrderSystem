@@ -1,7 +1,6 @@
 using System.Data;
 using System.Security.Claims;
 using ECommerceOrderSystem.Data;
-using ECommerceOrderSystem.Models.Entities;
 using ECommerceOrderSystem.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -17,7 +16,7 @@ public class OrderStatusController(ApplicationDbContext dbContext) : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Update(Guid id, OrderStatus status)
     {
-        if (status is not (OrderStatus.Shipped or OrderStatus.Delivered))
+        if(status is not (OrderStatus.Shipped or OrderStatus.Delivered))
         {
             TempData["ErrorMessage"] = "Administrators can only update orders to Shipped or Delivered.";
             return RedirectToAction("Details", "Orders", new { id });
@@ -31,7 +30,7 @@ public class OrderStatusController(ApplicationDbContext dbContext) : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateOwn(Guid id, OrderStatus status)
     {
-        if (status is not (OrderStatus.Paid or OrderStatus.Cancelled))
+        if(status is not (OrderStatus.Paid or OrderStatus.Cancelled))
         {
             TempData["ErrorMessage"] = "Customers can only pay for or cancel their own orders.";
             return RedirectToAction("Details", "Orders", new { id });
@@ -45,27 +44,27 @@ public class OrderStatusController(ApplicationDbContext dbContext) : Controller
     {
         await using var transaction = await dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable);
         var query = dbContext.Orders.Include(order => order.Items).Where(order => order.Id == id);
-        if (customerId is not null)
+        if(customerId is not null)
             query = query.Where(order => order.CustomerId == customerId);
 
         var order = await query.FirstOrDefaultAsync();
-        if (order is null)
+        if(order is null)
             return NotFound();
 
-        if (!OrderLifecycleService.TryValidateTransition(order.Status, status, out var error))
+        if(!OrderLifecycleService.TryValidateTransition(order.Status, status, out var error))
         {
             await transaction.RollbackAsync();
             TempData["ErrorMessage"] = error;
             return RedirectToAction("Details", "Orders", new { id });
         }
 
-        if (status == OrderStatus.Cancelled)
+        if(status == OrderStatus.Cancelled)
         {
             var productIds = order.Items.Select(item => item.ProductId).ToList();
             var products = await dbContext.Products.Where(product => productIds.Contains(product.Id)).ToDictionaryAsync(product => product.Id);
-            foreach (var item in order.Items)
+            foreach(var item in order.Items)
             {
-                if (products.TryGetValue(item.ProductId, out var product))
+                if(products.TryGetValue(item.ProductId, out var product))
                     product.Stock += item.Quantity;
             }
         }
@@ -82,7 +81,7 @@ public class OrderStatusController(ApplicationDbContext dbContext) : Controller
                 ? $"Payment recorded for order {order.OrderNumber}."
                 : $"Order moved from {previousStatus} to {status}.";
         }
-        catch (DbUpdateConcurrencyException)
+        catch(DbUpdateConcurrencyException)
         {
             await transaction.RollbackAsync();
             TempData["ErrorMessage"] = "The order or its stock changed while the status was being updated. Please try again.";

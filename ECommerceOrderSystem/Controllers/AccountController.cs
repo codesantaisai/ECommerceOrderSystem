@@ -1,79 +1,52 @@
 using ECommerceOrderSystem.Common;
 using ECommerceOrderSystem.Models.ViewModels.Account;
+using ECommerceOrderSystem.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerceOrderSystem.Controllers;
 
-[AllowAnonymous]
-public class AccountController(
-    UserManager<ApplicationUser> userManager,
-    SignInManager<ApplicationUser> signInManager) : Controller
+public class AccountController(UserManager<ApplicationUser> users, SignInManager<ApplicationUser> signIn, IJwtService jwtService) : Controller
 {
-    [HttpGet]
-    public IActionResult Login(string? returnUrl = null)
-    {
-        if (User.Identity?.IsAuthenticated == true)
-            return RedirectForRole();
+    private const string TokenCookie = "access_token";
 
-        return View(new LoginViewModel { ReturnUrl = returnUrl });
-    }
+    [AllowAnonymous, HttpGet]
+    public IActionResult Login(string? returnUrl = null) =>
+        User.Identity?.IsAuthenticated == true ? RedirectForRole() : View(new LoginViewModel { ReturnUrl = returnUrl });
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
+    [AllowAnonymous, HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(LoginViewModel model)
     {
-        if (!ModelState.IsValid)
-            return View(model);
-
-        var user = await userManager.FindByEmailAsync(model.Email);
-        if (user is null)
+        if(!ModelState.IsValid) return View(model);
+        var user = await users.FindByEmailAsync(model.Email.Trim());
+        if(user is null)
         {
-            ModelState.AddModelError(string.Empty, "Invalid email or password.");
+            ModelState.AddModelError(string.Empty, "Invalid email or password."); return View(model);
+        }
+
+        var result = await signIn.CheckPasswordSignInAsync(user, model.Password, lockoutOnFailure: true);
+        if(!result.Succeeded)
+        {
+            ModelState.AddModelError(string.Empty, result.IsLockedOut ? "Account temporarily locked." : "Invalid email or password.");
             return View(model);
         }
 
-        var result = await signInManager.PasswordSignInAsync(
-            user, model.Password, model.RememberMe, lockoutOnFailure: true);
-
-        if (result.Succeeded)
-        {
-            user.LastLogin = DateTime.UtcNow;
-            await userManager.UpdateAsync(user);
-
-            if (!string.IsNullOrWhiteSpace(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
-                return LocalRedirect(model.ReturnUrl);
-
-            return await RedirectForUserAsync(user);
-        }
-
-        if (result.IsLockedOut)
-            ModelState.AddModelError(string.Empty, "Your account is temporarily locked. Try again in 5 minutes.");
-        else if (result.IsNotAllowed)
-            ModelState.AddModelError(string.Empty, "This account is not allowed to sign in.");
-        else
-            ModelState.AddModelError(string.Empty, "Invalid email or password.");
-
-        return View(model);
+        user.LastLogin = DateTime.UtcNow;
+        await users.UpdateAsync(user);
+        await SetTokenCookie(user, model.RememberMe);
+        if(!string.IsNullOrWhiteSpace(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
+            return LocalRedirect(model.ReturnUrl);
+        return await users.IsInRoleAsync(user, "ADMIN") ? RedirectToAction("All", "Orders") : RedirectToAction("Index", "Products");
     }
 
-    [HttpGet]
-    public IActionResult Register()
-    {
-        if (User.Identity?.IsAuthenticated == true)
-            return RedirectForRole();
+    [AllowAnonymous, HttpGet]
+    public IActionResult Register() => User.Identity?.IsAuthenticated == true ? RedirectForRole() : View(new RegisterViewModel());
 
-        return View(new RegisterViewModel());
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
+    [AllowAnonymous, HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Register(RegisterViewModel model)
     {
-        if (!ModelState.IsValid)
-            return View(model);
-
+        if(!ModelState.IsValid) return View(model);
         var user = new ApplicationUser
         {
             UserName = model.Email.Trim(),
@@ -81,55 +54,46 @@ public class AccountController(
             FullName = model.FullName.Trim(),
             LastLogin = DateTime.UtcNow
         };
-
-        var createResult = await userManager.CreateAsync(user, model.Password);
-        if (!createResult.Succeeded)
+        var result = await users.CreateAsync(user, model.Password);
+        if(!result.Succeeded)
         {
-            AddErrors(createResult);
+            foreach(var error in result.Errors) ModelState.AddModelError(string.Empty, error.Description);
             return View(model);
         }
-
-        var roleResult = await userManager.AddToRoleAsync(user, "CUSTOMER");
-        if (!roleResult.Succeeded)
+        var roleResult = await users.AddToRoleAsync(user, "CUSTOMER");
+        if(!roleResult.Succeeded)
         {
-            await userManager.DeleteAsync(user);
-            AddErrors(roleResult);
+            await users.DeleteAsync(user);
+            foreach(var error in roleResult.Errors) ModelState.AddModelError(string.Empty, error.Description);
             return View(model);
         }
-
-        await signInManager.SignInAsync(user, isPersistent: false);
+        await SetTokenCookie(user, false);
         return RedirectToAction("Index", "Products");
     }
 
-    [Authorize]
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Logout()
+    [Authorize, HttpPost, ValidateAntiForgeryToken]
+    public IActionResult Logout()
     {
-        await signInManager.SignOutAsync();
+        Response.Cookies.Delete(TokenCookie);
         return RedirectToAction(nameof(Login));
     }
 
-    [Authorize]
-    [HttpGet]
+    [AllowAnonymous, HttpGet]
     public IActionResult AccessDenied() => View();
 
-    private async Task<IActionResult> RedirectForUserAsync(ApplicationUser user)
+    private async Task SetTokenCookie(ApplicationUser user, bool rememberMe)
     {
-        if (await userManager.IsInRoleAsync(user, "ADMIN"))
-            return RedirectToAction("All", "Orders");
-
-        return RedirectToAction("Index", "Products");
+        var (token, expiresAt) = await jwtService.GenerateToken(user);
+        var options = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            IsEssential = true
+        };
+        if(rememberMe) options.Expires = expiresAt;
+        Response.Cookies.Append(TokenCookie, token, options);
     }
 
-    private IActionResult RedirectForRole() =>
-        User.IsInRole("ADMIN")
-            ? RedirectToAction("All", "Orders")
-            : RedirectToAction("Index", "Products");
-
-    private void AddErrors(IdentityResult result)
-    {
-        foreach (var error in result.Errors)
-            ModelState.AddModelError(string.Empty, error.Description);
-    }
+    private IActionResult RedirectForRole() => User.IsInRole("ADMIN") ? RedirectToAction("All", "Orders") : RedirectToAction("Index", "Products");
 }
