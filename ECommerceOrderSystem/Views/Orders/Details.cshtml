@@ -1,4 +1,43 @@
-@{ ViewData["Title"] = "Order Details"; }
-<a asp-action="MyOrders" class="text-decoration-none">← Back to orders</a>
-<div class="d-flex justify-content-between align-items-end my-4"><div><span class="text-primary fw-semibold small">ORDER DETAILS</span><h1 class="display-6 fw-bold mb-1">ORD-1048</h1><p class="text-muted mb-0">Placed on 10 July 2026 at 10:30</p></div><span class="badge text-bg-primary fs-6">Paid</span></div>
-<div class="row g-4"><div class="col-lg-8"><div class="card border-0 shadow-sm"><div class="card-header bg-white p-4"><h2 class="h5 fw-bold mb-0">Order items</h2></div><div class="card-body p-4"><div class="d-flex justify-content-between border-bottom pb-3 mb-3"><div><strong>Wireless Headphones</strong><div class="text-muted small">$249.00 × 1</div></div><strong>$249.00</strong></div><div class="d-flex justify-content-between border-bottom pb-3 mb-3"><div><strong>Mechanical Keyboard</strong><div class="text-muted small">$129.50 × 1</div></div><strong>$129.50</strong></div><div class="d-flex justify-content-between pt-2"><span class="h5">Grand total</span><strong class="h4">$378.50</strong></div></div></div></div><div class="col-lg-4"><div class="card border-0 shadow-sm mb-3"><div class="card-body p-4"><h2 class="h5 fw-bold">Customer</h2><strong>Alex Morgan</strong><div class="text-muted">alex@example.com</div></div></div><div class="card border-0 shadow-sm"><div class="card-body p-4"><h2 class="h5 fw-bold">Shipping address</h2><p class="mb-0">42 Ocean Avenue<br />Colombo 03<br />Sri Lanka</p></div></div></div></div>
+@model ECommerceOrderSystem.Models.ViewModels.Orders.OrderDetailsViewModel
+@using ECommerceOrderSystem.Models.Entities
+@{
+    ViewData["Title"] = "Order Details";
+}
+<a asp-action="@(User.IsInRole("ADMIN") ? "All" : "MyOrders")" class="text-decoration-none">&larr; Back to orders</a>
+@if(TempData["SuccessMessage"] is string message)
+{
+    <div class="alert alert-success mt-3">@message</div>
+}
+@if(TempData["ErrorMessage"] is string errorMessage)
+{
+    <div class="alert alert-danger mt-3">@errorMessage</div>
+}
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-3 my-4">
+    <div><span class="text-primary fw-semibold small">ORDER DETAILS</span><h1 class="display-6 fw-bold mb-1">@Model.OrderNumber</h1><p class="text-muted mb-0">Placed @Model.CreatedDate.ToLocalTime().ToString("dd MMMM yyyy 'at' HH:mm")</p></div><div class="d-flex align-items-center gap-2">
+        <span class=" text-bg-primary fs-6">@Model.Status</span>
+        @if(User.IsInRole("CUSTOMER") && Model.Status == OrderStatus.Pending)
+        {
+            <form asp-controller="OrderStatus" asp-action="UpdateOwn" asp-route-id="@Model.Id" method="post"><input type="hidden" name="status" value="Paid" /><button type="submit" class="btn btn-success">Pay Now</button></form>
+        }
+        @if(User.IsInRole("CUSTOMER") && Model.Status is OrderStatus.Pending or OrderStatus.Paid)
+        {
+            <form asp-controller="OrderStatus" asp-action="UpdateOwn" asp-route-id="@Model.Id" method="post" onsubmit="return confirm('Cancel this order? Stock will be restored.');"><input type="hidden" name="status" value="Cancelled" /><button type="submit" class="btn btn-outline-danger">Cancel Order</button></form>
+        }
+        @if(User.IsInRole("ADMIN") && Model.Status == OrderStatus.Paid)
+        {
+            <form asp-controller="OrderStatus" asp-action="Update" asp-route-id="@Model.Id" method="post"><input type="hidden" name="status" value="Shipped" /><button type="submit" class="btn btn-primary">Mark as Shipped</button></form>
+        }
+        @if(User.IsInRole("ADMIN") && Model.Status == OrderStatus.Shipped)
+        {
+            <form asp-controller="OrderStatus" asp-action="Update" asp-route-id="@Model.Id" method="post"><input type="hidden" name="status" value="Delivered" /><button type="submit" class="btn btn-success">Mark as Delivered</button></form>
+        }
+    </div>
+</div>
+<div class="card border-0 bg-light mb-4"><div class="card-body py-3"><div class="d-flex flex-wrap align-items-center gap-2 small"><strong>Lifecycle:</strong><span class=" @(Model.Status == OrderStatus.Pending ? "text-bg-primary" : "text-bg-secondary")">Pending</span><span>&rarr;</span><span class=" @(Model.Status == OrderStatus.Paid ? "text-bg-primary" : "text-bg-secondary")">Paid</span><span>&rarr;</span><span class=" @(Model.Status == OrderStatus.Shipped ? "text-bg-primary" : "text-bg-secondary")">Shipped</span><span>&rarr;</span><span class=" @(Model.Status == OrderStatus.Delivered ? "text-bg-success" : "text-bg-secondary")">Delivered</span>@if (Model.Status == OrderStatus.Cancelled) {
+<span class=" text-bg-danger ms-2">Cancelled</span>
+}
+</div></div></div>
+<div class="row g-4"><div class="col-lg-8"><div class="card border-0 shadow-sm"><div class="card-header bg-white p-4"><h2 class="h5 fw-bold mb-0">Order items</h2></div><div class="card-body p-4">@foreach (var item in Model.Items) {
+<div class="d-flex justify-content-between border-bottom pb-3 mb-3"><div><strong>@item.ProductName</strong><div class="text-muted small">$@item.UnitPrice.ToString("N2") &times; @item.Quantity</div></div><strong>$@item.LineTotal.ToString("N2")</strong></div>
+}
+<div class="d-flex justify-content-between pt-2"><span class="h5">Grand total</span><strong class="h4">$@Model.GrandTotal.ToString("N2")</strong></div></div></div></div><div class="col-lg-4"><div class="card border-0 shadow-sm mb-3"><div class="card-body p-4"><h2 class="h5 fw-bold">Customer</h2><strong>@Model.CustomerName</strong><div class="text-muted">@Model.CustomerEmail</div></div></div><div class="card border-0 shadow-sm"><div class="card-body p-4"><h2 class="h5 fw-bold">Shipping address</h2><p class="mb-0" style="white-space:pre-line">@Model.ShippingAddress</p></div></div></div></div>

@@ -1,12 +1,11 @@
+using ECommerceOrderSystem.Models.Common;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ECommerceOrderSystem.Models.Entities;
 
-public class Product
+public class Product : BaseModel
 {
-    public Guid Id { get; set; } = Guid.NewGuid();
-
     [Required, StringLength(120)]
     public string Name { get; set; } = string.Empty;
 

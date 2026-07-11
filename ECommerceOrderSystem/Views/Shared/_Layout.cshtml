@@ -21,9 +21,9 @@
                         <li class="nav-item"><a class="nav-link text-dark" asp-controller="Products" asp-action="Index">Products</a></li>
                         @if(User.IsInRole("CUSTOMER"))
                         {
-                            <li class="nav-item">
+                            @* <li class="nav-item">
                                 <a class="nav-link text-dark" asp-controller="Orders" asp-action="Create">Create Order</a>
-                            </li>
+                            </li> *@
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-controller="Orders" asp-action="MyOrders">My Orders</a>
                             </li>

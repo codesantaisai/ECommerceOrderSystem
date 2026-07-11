@@ -1,12 +1,11 @@
+using ECommerceOrderSystem.Models.Common;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ECommerceOrderSystem.Models.Entities;
 
-public class OrderItem
+public class OrderItem : BaseModel
 {
-    public Guid Id { get; set; } = Guid.NewGuid();
-
     public Guid OrderId { get; set; }
     public Order Order { get; set; }
 
