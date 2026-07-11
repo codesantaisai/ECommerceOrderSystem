@@ -22,6 +22,14 @@ public class ProductsController(ApplicationDbContext dbContext) : Controller
         return View(await query.OrderByDescending(product => product.CreatedDate).ToListAsync());
     }
 
+    [AllowAnonymous, HttpGet]
+    public async Task<IActionResult> Details(Guid id)
+    {
+        var product = await dbContext.Products.AsNoTracking().FirstOrDefaultAsync(item => item.Id == id);
+        if(product is null) return NotFound();
+        return View(product);
+    }
+
     [Authorize(Roles = "ADMIN"), HttpGet]
     public IActionResult Create() => View("Form", new CreateProductViewModel());
 

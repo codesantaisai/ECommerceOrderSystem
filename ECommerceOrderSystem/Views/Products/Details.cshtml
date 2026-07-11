@@ -1,0 +1,51 @@
+@model Product
+@{
+    ViewData["Title"] = Model.Name;
+}
+
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Index">Products</a></li>
+        <li class="breadcrumb-item active" aria-current="page">@Model.Name</li>
+    </ol>
+</nav>
+
+<div class="card border-0 shadow-sm overflow-hidden product-details-card">
+    <div class="row g-0">
+        <div class="col-lg-5">
+            <div class="product-details-image bg-primary bg-opacity-10 d-flex align-items-center justify-content-center">
+                <span class="display-1 fw-bold text-primary">@Model.Name[0]</span>
+            </div>
+        </div>
+        <div class="col-lg-7">
+            <div class="card-body p-4 p-lg-5 d-flex flex-column h-100">
+                <span class="text-primary fw-semibold small mb-2">PRODUCT DETAILS</span>
+                <h1 class="display-6 fw-bold mb-3">@Model.Name</h1>
+                <p class="product-full-description text-muted mb-4">@Model.Description</p>
+                <div class="mt-auto">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+                        <strong class="h3 mb-0">LKR @Model.Price.ToString("N2")</strong>
+                        <span class="badge rounded-pill @(Model.Stock == 0 ? "bg-danger bg-opacity-10 text-danger" : "bg-success bg-opacity-10 text-success") px-3 py-2">@(Model.Stock == 0 ? "Out of stock" : $"{Model.Stock} in stock")</span>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        @if(User.IsInRole("ADMIN"))
+                        {
+                            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit Product</a>
+                            <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger">Delete Product</a>
+                        }
+                        else if(User.Identity?.IsAuthenticated == true && User.IsInRole("CUSTOMER") && Model.Stock > 0)
+                        {
+                            <a asp-controller="Orders" asp-action="Create" asp-route-productId="@Model.Id" class="btn btn-primary">Order Now</a>
+                        }
+                        else if(User.Identity?.IsAuthenticated != true && Model.Stock > 0)
+                        {
+                            <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Create", "Orders", new { productId = Model.Id })" class="btn btn-primary">Login to Order</a>
+                        }
+                        <a asp-action="Index" class="btn btn-outline-secondary">Back to Products</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
