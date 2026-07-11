@@ -15,9 +15,17 @@ public class OrdersController(IOrderService orders, ILogger<OrdersController> lo
     [Authorize(Roles = "CUSTOMER"), HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(CreateOrderViewModel model)
     {
-        if (!ModelState.IsValid) { await orders.PopulateProductDisplayAsync(model); return View(model); }
+        if(!ModelState.IsValid)
+        {
+            await orders.PopulateProductDisplayAsync(model); return View(model);
+        }
         var result = await orders.CreateAsync(model, User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        if (!result.Succeeded) { logger.LogWarning("Order creation failed for user {UserId}: {Message}", User.FindFirstValue(ClaimTypes.NameIdentifier), result.Message); ModelState.AddModelError(string.Empty, result.Message); await orders.PopulateProductDisplayAsync(model); return View(model); }
+        if(!result.Succeeded)
+        {
+            logger.LogWarning("Order creation failed for user {UserId}: {Message}", User.FindFirstValue(ClaimTypes.NameIdentifier), result.Message);
+            ModelState.AddModelError(string.Empty, result.Message); await orders.PopulateProductDisplayAsync(model);
+            return View(model);
+        }
         logger.LogInformation("Order {OrderId} was created for user {UserId}.", result.OrderId, User.FindFirstValue(ClaimTypes.NameIdentifier));
         TempData["SuccessMessage"] = result.Message;
         return RedirectToAction(nameof(Details), new { id = result.OrderId });

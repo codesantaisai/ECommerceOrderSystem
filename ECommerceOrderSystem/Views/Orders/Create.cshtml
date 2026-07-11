@@ -27,7 +27,8 @@
                             <div>
                                 <strong>@Model.Items[index].ProductName</strong>
                                 <div class="text-muted small">@Model.Items[index].UnitPrice.ToString("N2") LKR &middot; @Model.Items[index].AvailableStock available</div>
-                            </div><div class="input-group" style="width:140px">
+                            </div>
+                            <div class="input-group" style="width:140px">
                                 <button type="button" class="btn btn-outline-secondary quantity-step" data-step="-1">-</button>
                                 <input asp-for="Items[index].Quantity" class="form-control text-center quantity-input" min="0" max="@Model.Items[index].AvailableStock" />
                                 <button type="button" class="btn btn-outline-secondary quantity-step" data-step="1">+</button>
@@ -60,5 +61,10 @@
 </form>
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script>(()=>{const update=()=>{let quantity=0,total=0;document.querySelectorAll('.order-line').forEach(line=>{const input=line.querySelector('.quantity-input');const value=Math.max(0,Number(input.value)||0);quantity+=value;total+=value*Number(line.dataset.price)});document.getElementById('summaryQuantity').textContent=quantity;document.getElementById('summaryTotal').textContent='$'+total.toFixed(2)};document.querySelectorAll('.quantity-step').forEach(button=>button.addEventListener('click',()=>{const input=button.parentElement.querySelector('.quantity-input');input.value=Math.max(0,Math.min(Number(input.max),Number(input.value||0)+Number(button.dataset.step)));update()}));document.querySelectorAll('.quantity-input').forEach(input=>input.addEventListener('input',update));update()})();</script>
+    <script>
+        (()=>{const update=()=>{let quantity=0,total=0;document.querySelectorAll('.order-line')
+            .forEach(line=>{const input=line.querySelector('.quantity-input');const value=Math.max(0,Number(input.value)||0);quantity+=value;total+=value*Number(line.dataset.price)});document.getElementById('summaryQuantity').textContent=quantity;document.getElementById('summaryTotal').textContent='$'+total.toFixed(2)};document.querySelectorAll('.quantity-step')
+            .forEach(button=>button.addEventListener('click',()=>{const input=button.parentElement.querySelector('.quantity-input');input.value=Math.max(0,Math.min(Number(input.max),Number(input.value||0)+Number(button.dataset.step)));update()}));document.querySelectorAll('.quantity-input')
+            .forEach(input=>input.addEventListener('input',update));update()})();
+    </script>
 }

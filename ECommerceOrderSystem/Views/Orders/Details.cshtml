@@ -14,7 +14,12 @@
     <div class="alert alert-danger mt-3">@errorMessage</div>
 }
 <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 my-4">
-    <div><span class="text-primary fw-semibold small">ORDER DETAILS</span><h1 class="display-6 fw-bold mb-1">@Model.OrderNumber</h1><p class="text-muted mb-0">Placed @Model.CreatedDate.ToLocalTime().ToString("dd MMMM yyyy 'at' HH:mm")</p></div><div class="d-flex align-items-center gap-2">
+    <div>
+        <span class="text-primary fw-semibold small">ORDER DETAILS</span>
+        <h1 class="display-6 fw-bold mb-1">@Model.OrderNumber</h1>
+        <p class="text-muted mb-0">Placed @Model.CreatedDate.ToLocalTime().ToString("dd MMMM yyyy 'at' HH:mm")</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
         <span class=" text-bg-primary fs-6">@Model.Status</span>
         @if(User.IsInRole("CUSTOMER") && Model.Status == OrderStatus.Pending)
         {
@@ -71,5 +76,20 @@
                 <div class="d-flex justify-content-between pt-2"><span class="h5">Grand total</span><strong class="h4">@Model.GrandTotal.ToString("N2") LKR</strong></div>
             </div>
         </div>
-    </div><div class="col-lg-4"><div class="card border-0 shadow-sm mb-3"><div class="card-body p-4"><h2 class="h5 fw-bold">Customer</h2><strong>@Model.CustomerName</strong><div class="text-muted">@Model.CustomerEmail</div></div></div><div class="card border-0 shadow-sm"><div class="card-body p-4"><h2 class="h5 fw-bold">Shipping address</h2><p class="mb-0" style="white-space:pre-line">@Model.ShippingAddress</p></div></div></div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body p-4">
+                <h2 class="h5 fw-bold">Customer</h2>
+                <strong>@Model.CustomerName</strong>
+                <div class="text-muted">@Model.CustomerEmail</div>
+            </div>
+        </div>
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <h2 class="h5 fw-bold">Shipping address</h2>
+                <p class="mb-0" style="white-space:pre-line">@Model.ShippingAddress</p>
+            </div>
+        </div>
+    </div>
 </div>

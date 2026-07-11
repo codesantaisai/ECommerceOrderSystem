@@ -47,7 +47,10 @@ public class ProductsController(IProductService products, ILogger<ProductsContro
         if(id != model.Id) return BadRequest();
         if(!ModelState.IsValid) return View(model);
         var result = await products.UpdateAsync(id, model);
-        if(result.Succeeded) { logger.LogInformation("Product {ProductId} was updated.", id); TempData["SuccessMessage"] = result.Message; return RedirectToAction(nameof(Index)); }
+        if(result.Succeeded)
+        {
+            logger.LogInformation("Product {ProductId} was updated.", id); TempData["SuccessMessage"] = result.Message; return RedirectToAction(nameof(Index));
+        }
         logger.LogWarning("Product {ProductId} update failed: {Message}", id, result.Message);
         if(result.RowVersion is not null) model.RowVersion = result.RowVersion;
         ModelState.AddModelError(string.Empty, result.Message);

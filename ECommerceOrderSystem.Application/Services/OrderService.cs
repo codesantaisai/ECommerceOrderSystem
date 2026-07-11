@@ -13,17 +13,37 @@ public sealed class OrderService(ApplicationDbContext db, IOrderLifecycleService
 {
     public async Task<CreateOrderViewModel> BuildCreateModelAsync(Guid? selectedProductId = null)
     {
-        var products = await db.Products.AsNoTracking().Where(p => p.Stock > 0).OrderBy(p => p.Name).ToListAsync();
-        return new CreateOrderViewModel { Items = products.Select(p => new CreateOrderItemViewModel { ProductId = p.Id, ProductName = p.Name, UnitPrice = p.Price, AvailableStock = p.Stock, Quantity = p.Id == selectedProductId ? 1 : 0 }).ToList() };
+        var products = await db.Products
+            .AsNoTracking()
+            .Where(p => p.Stock > 0)
+            .OrderBy(p => p.Name)
+            .ToListAsync();
+        return new CreateOrderViewModel
+        {
+            Items = products.Select(p => new CreateOrderItemViewModel
+            {
+                ProductId = p.Id,
+                ProductName = p.Name,
+                UnitPrice = p.Price,
+                AvailableStock = p.Stock,
+                Quantity = p.Id == selectedProductId ? 1 : 0
+            }).ToList()
+        };
     }
 
     public async Task PopulateProductDisplayAsync(CreateOrderViewModel model)
     {
-        var products = await db.Products.AsNoTracking().Where(p => p.Stock > 0).OrderBy(p => p.Name).ToDictionaryAsync(p => p.Id);
+        var products = await db.Products
+            .AsNoTracking()
+            .Where(p => p.Stock > 0)
+            .OrderBy(p => p.Name)
+            .ToDictionaryAsync(p => p.Id);
         foreach(var item in model.Items.Where(i => products.ContainsKey(i.ProductId)))
         {
             var product = products[item.ProductId];
-            item.ProductName = product.Name; item.UnitPrice = product.Price; item.AvailableStock = product.Stock;
+            item.ProductName = product.Name;
+            item.UnitPrice = product.Price;
+            item.AvailableStock = product.Stock;
         }
         model.Items = model.Items.Where(i => products.ContainsKey(i.ProductId)).ToList();
     }
@@ -75,17 +95,27 @@ public sealed class OrderService(ApplicationDbContext db, IOrderLifecycleService
         {
             var ids = order.Items.Select(i => i.ProductId).ToList();
             var products = await db.Products.Where(p => ids.Contains(p.Id)).ToDictionaryAsync(p => p.Id);
-            foreach(var item in order.Items) if(products.TryGetValue(item.ProductId, out var product)) product.Stock += item.Quantity;
+            foreach(var item in order.Items)
+                if(products.TryGetValue(item.ProductId, out var product)) product.Stock += item.Quantity;
         }
-        var previous = order.Status; order.Status = status; order.UpdatedDate = DateTime.UtcNow;
+        var previous = order.Status;
+        order.Status = status;
+        order.UpdatedDate = DateTime.UtcNow;
         try
         {
             await db.SaveChangesAsync(); await transaction.CommitAsync();
             return new(true, status == OrderStatus.Paid ? $"Payment recorded for order {order.OrderNumber}." : $"Order moved from {previous} to {status}.", order.Id);
         }
-        catch(DbUpdateConcurrencyException) { return await Fail(transaction, "The order or its stock changed while the status was being updated. Please try again."); }
+        catch(DbUpdateConcurrencyException)
+        {
+            return await Fail(transaction, "The order or its stock changed while the status was being updated. Please try again.");
+        }
     }
 
-    private static async Task<OrderOperationResult> Fail(IDbContextTransaction transaction, string message, bool notFound = false) { await transaction.RollbackAsync(); return new(false, message, null, notFound); }
+    private static async Task<OrderOperationResult> Fail(IDbContextTransaction transaction, string message, bool notFound = false)
+    {
+        await transaction.RollbackAsync();
+        return new(false, message, null, notFound);
+    }
 }
 

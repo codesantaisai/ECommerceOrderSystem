@@ -24,7 +24,14 @@ public sealed class ProductService(ApplicationDbContext dbContext) : IProductSer
 
     public async Task<Product> CreateAsync(CreateProductViewModel model)
     {
-        var product = new Product { Name = model.Name.Trim(), Description = model.Description.Trim(), Price = model.Price, Stock = model.Stock, CreatedDate = DateTime.UtcNow };
+        var product = new Product
+        {
+            Name = model.Name.Trim(),
+            Description = model.Description.Trim(),
+            Price = model.Price,
+            Stock = model.Stock,
+            CreatedDate = DateTime.UtcNow
+        };
         dbContext.Products.Add(product);
         await dbContext.SaveChangesAsync();
         return product;
@@ -33,7 +40,15 @@ public sealed class ProductService(ApplicationDbContext dbContext) : IProductSer
     public async Task<EditProductViewModel?> GetForEditAsync(Guid id)
     {
         var product = await GetByIdAsync(id);
-        return product is null ? null : new EditProductViewModel { Id = product.Id, Name = product.Name, Description = product.Description, Price = product.Price, Stock = product.Stock, RowVersion = product.RowVersion };
+        return product is null ? null : new EditProductViewModel
+        {
+            Id = product.Id,
+            Name = product.Name,
+            Description = product.Description,
+            Price = product.Price,
+            Stock = product.Stock,
+            RowVersion = product.RowVersion
+        };
     }
 
     public async Task<ProductOperationResult> UpdateAsync(Guid id, EditProductViewModel model)
@@ -41,7 +56,10 @@ public sealed class ProductService(ApplicationDbContext dbContext) : IProductSer
         var product = await dbContext.Products.FirstOrDefaultAsync(item => item.Id == id);
         if(product is null) return ProductOperationResult.Failure("This product no longer exists.", true);
         dbContext.Entry(product).Property(item => item.RowVersion).OriginalValue = model.RowVersion;
-        product.Name = model.Name.Trim(); product.Description = model.Description.Trim(); product.Price = model.Price; product.Stock = model.Stock;
+        product.Name = model.Name.Trim();
+        product.Description = model.Description.Trim();
+        product.Price = model.Price;
+        product.Stock = model.Stock;
         try
         {
             await dbContext.SaveChangesAsync();
@@ -59,19 +77,39 @@ public sealed class ProductService(ApplicationDbContext dbContext) : IProductSer
     public async Task<DeleteProductViewModel?> GetForDeleteAsync(Guid id)
     {
         var product = await GetByIdAsync(id);
-        return product is null ? null : new DeleteProductViewModel { Id = product.Id, Name = product.Name, Description = product.Description, Price = product.Price, Stock = product.Stock, RowVersion = product.RowVersion };
+        return product is null ? null : new DeleteProductViewModel
+        {
+            Id = product.Id,
+            Name = product.Name,
+            Description = product.Description,
+            Price = product.Price,
+            Stock = product.Stock,
+            RowVersion = product.RowVersion
+        };
     }
 
     public async Task<ProductOperationResult> DeleteAsync(Guid id, byte[] rowVersion)
     {
         var product = await dbContext.Products.FirstOrDefaultAsync(item => item.Id == id);
-        if(product is null) return ProductOperationResult.Failure("The product no longer exists.", true);
-        if(await dbContext.OrderItems.AnyAsync(item => item.ProductId == id)) return ProductOperationResult.Failure("This product belongs to one or more orders and cannot be deleted because order history must be preserved.");
+        if(product is null)
+            return ProductOperationResult.Failure("The product no longer exists.", true);
+        if(await dbContext.OrderItems.AnyAsync(item => item.ProductId == id))
+            return ProductOperationResult.Failure("This product belongs to one or more orders and cannot be deleted because order history must be preserved.");
         dbContext.Entry(product).Property(item => item.RowVersion).OriginalValue = rowVersion;
         dbContext.Products.Remove(product);
-        try { await dbContext.SaveChangesAsync(); return ProductOperationResult.Success($"{product.Name} was deleted successfully."); }
-        catch(DbUpdateConcurrencyException) { return ProductOperationResult.Failure("The product was changed or deleted by another administrator. Nothing was deleted."); }
-        catch(DbUpdateException) { return ProductOperationResult.Failure("The product could not be deleted because it is in use."); }
+        try
+        {
+            await dbContext.SaveChangesAsync();
+            return ProductOperationResult.Success($"{product.Name} was deleted successfully.");
+        }
+        catch(DbUpdateConcurrencyException)
+        {
+            return ProductOperationResult.Failure("The product was changed or deleted by another administrator. Nothing was deleted.");
+        }
+        catch(DbUpdateException)
+        {
+            return ProductOperationResult.Failure("The product could not be deleted because it is in use.");
+        }
     }
 }
 

@@ -2,7 +2,14 @@
 @{
     ViewData["Title"] = "My Orders";
 }
-<div class="d-flex justify-content-between align-items-end mb-4"><div><span class="text-primary fw-semibold small">ORDER HISTORY</span><h1 class="display-6 fw-bold">My orders</h1><p class="text-muted mb-0">Track current purchases and review previous orders.</p></div><a asp-action="Create" class="btn btn-primary">Create Order</a></div>
+<div class="d-flex justify-content-between align-items-end mb-4">
+    <div>
+        <span class="text-primary fw-semibold small">ORDER HISTORY</span>
+        <h1 class="display-6 fw-bold">My orders</h1>
+        <p class="text-muted mb-0">Track current purchases and review previous orders.</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary">Create Order</a>
+</div>
 @if(TempData["SuccessMessage"] is string message)
 {
     <div class="alert alert-success">@message</div>
@@ -23,11 +30,32 @@ else
     <div class="card border-0 shadow-sm">
         <div class="table-responsive">
             <table class="table align-middle mb-0">
-                <thead class="table-light"><tr><th class="p-3">Order</th><th>Date</th><th>Items</th><th>Total</th><th>Status</th><th></th></tr></thead>
+                <thead class="table-light">
+                    <tr>
+                        <th class="p-3">Order</th>
+                        <th>Date</th>
+                        <th>Items</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>
+                        </th>
+                    </tr>
+                </thead>
                 <tbody>
                     @foreach(var order in Model)
                     {
-                        <tr><td class="p-3 fw-bold">@order.OrderNumber</td><td>@order.CreatedDate.ToLocalTime().ToString("dd MMM yyyy")</td><td>@order.ItemCount</td><td class="fw-semibold">@order.GrandTotal.ToString("N2") LKR</td><td><span class=" text-bg-primary">@order.Status</span></td><td class="text-end pe-3"><a asp-action="Details" asp-route-id="@order.Id" class="btn btn-sm btn-outline-dark">View</a></td></tr>
+                        <tr>
+                            <td class="p-3 fw-bold">@order.OrderNumber</td>
+                            <td>@order.CreatedDate.ToLocalTime().ToString("dd MMM yyyy")</td>
+                            <td>@order.ItemCount</td>
+                            <td class="fw-semibold">@order.GrandTotal.ToString("N2") LKR</td>
+                            <td>
+                                <span class=" text-bg-primary">@order.Status</span>
+                            </td>
+                            <td class="text-end pe-3">
+                                <a asp-action="Details" asp-route-id="@order.Id" class="btn btn-sm btn-outline-dark">View</a>
+                            </td>
+                        </tr>
                     }
                 </tbody>
             </table>

@@ -3,8 +3,37 @@
 @{
     ViewData["Title"] = "All Orders";
 }
-<div class="mb-4"><span class="text-primary fw-semibold small">ADMIN</span><h1 class="display-6 fw-bold">All orders</h1><p class="text-muted">Review purchases and monitor order fulfilment.</p></div>
-<div class="row g-3 mb-4"><div class="col-md-4"><div class="card border-0 shadow-sm"><div class="card-body"><span class="text-muted">Total orders</span><div class="h3 fw-bold mt-1">@Model.Count</div></div></div></div><div class="col-md-4"><div class="card border-0 shadow-sm"><div class="card-body"><span class="text-muted">Awaiting action</span><div class="h3 fw-bold mt-1">@Model.Count(order => order.Status is OrderStatus.Pending or OrderStatus.Paid)</div></div></div></div><div class="col-md-4"><div class="card border-0 shadow-sm"><div class="card-body"><span class="text-muted">Revenue</span><div class="h3 fw-bold mt-1">@Model.Sum(order => order.GrandTotal).ToString("N2") LKR</div></div></div></div></div>
+<div class="mb-4">
+    <span class="text-primary fw-semibold small">ADMIN</span>
+    <h1 class="display-6 fw-bold">All orders</h1>
+    <p class="text-muted">Review purchases and monitor order fulfilment.</p>
+</div>
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <span class="text-muted">Total orders</span>
+                <div class="h3 fw-bold mt-1">@Model.Count</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <span class="text-muted">Awaiting action</span>
+                <div class="h3 fw-bold mt-1">@Model.Count(order => order.Status is OrderStatus.Pending or OrderStatus.Paid)</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <span class="text-muted">Revenue</span>
+                <div class="h3 fw-bold mt-1">@Model.Sum(order => order.GrandTotal).ToString("N2") LKR</div>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="card border-0 shadow-sm">
     <div class="table-responsive">
         <table class="table align-middle mb-0">

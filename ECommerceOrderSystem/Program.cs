@@ -83,6 +83,7 @@ builder.Services.RegisterApplicationServices();
 #endregion
 
 builder.Services.AddControllersWithViews();
+#region Serilog
 builder.Host.UseSerilog((context, services, configuration) => configuration
     .MinimumLevel.Information()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
@@ -96,7 +97,7 @@ builder.Host.UseSerilog((context, services, configuration) => configuration
         rollingInterval: RollingInterval.Day,
         restrictedToMinimumLevel: LogEventLevel.Information,
         retainedFileCountLimit: 14));
-
+#endregion
 try
 {
     Log.Information("Starting ECommerceOrderSystem web application.");

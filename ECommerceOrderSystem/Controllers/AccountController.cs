@@ -70,7 +70,8 @@ public class AccountController(UserManager<ApplicationUser> users, SignInManager
         {
             logger.LogError("Failed to assign CUSTOMER role to new user {UserId}.", user.Id);
             await users.DeleteAsync(user);
-            foreach(var error in roleResult.Errors) ModelState.AddModelError(string.Empty, error.Description);
+            foreach(var error in roleResult.Errors)
+                ModelState.AddModelError(string.Empty, error.Description);
             return View(model);
         }
         await SetTokenCookie(user, false);
